@@ -15,22 +15,31 @@ class ProductController extends Controller
 {
     public function index(ProductSearchRequest $request)
     {
-        $products = Product::query();
+        $products = Product::query()
+            ->where('user_id', '!=', auth()->id())
+            ->orderBy('id', 'asc');
 
-        if ($request->filled('product_name')){
-            $products->where('product_name', 'like', '%' . $request->product_name . '%');
+        if ($request->filled('product_name')) {
+            $products->where(
+                'product_name', 
+                'like', 
+                '%' . $request->product_name . '%'
+            );
         }
 
-        if ($request->filled('min_price')){
+        if ($request->filled('min_price')) {
             $products->where('price', '>=', $request->min_price);
         }
 
-        if ($request->filled('max_price')){
+        if ($request->filled('max_price')) {
             $products->where('price', '<=', $request->max_price);
         }
 
         $products = $products->get();
 
+        if ($request->ajax()) {
+            return response()->json($products);
+        }
         return view('products.index', compact('products'));
     }
 
